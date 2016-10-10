@@ -101,50 +101,50 @@ public class MainActivity extends BaseActivity {
 		}
 		
 		//make sure activity will not in background if user is logged into another device or removed
-		if (savedInstanceState != null && savedInstanceState.getBoolean(Constant.ACCOUNT_REMOVED, false)) {
-		    DemoHelper.getInstance().logout(false,null);
-			finish();
-			startActivity(new Intent(this, LoginActivity.class));
+		if (savedInstanceState != null && savedInstanceState.getBoolean(Constant.ACCOUNT_REMOVED, false)) {//判断账号是否被移除
+		    DemoHelper.getInstance().logout(false,null);//登出
+			finish();//关闭页面
+			startActivity(new Intent(this, LoginActivity.class));//打开登陆界面
 			return;
-		} else if (savedInstanceState != null && savedInstanceState.getBoolean("isConflict", false)) {
+		} else if (savedInstanceState != null && savedInstanceState.getBoolean("isConflict", false)) {//是否冲突
 			finish();
 			startActivity(new Intent(this, LoginActivity.class));
 			return;
 		}
 		setContentView(R.layout.em_activity_main);
 		// runtime permission for android 6.0, just require all permissions here for simple
-		requestPermissions();
+		requestPermissions();//请求关于6.0的运行时权限
 
-		initView();
+		initView();//找到控件
 
 		//umeng api
 		MobclickAgent.updateOnlineConfig(this);
 		UmengUpdateAgent.setUpdateOnlyWifi(false);
 		UmengUpdateAgent.update(this);
 
-		if (getIntent().getBooleanExtra(Constant.ACCOUNT_CONFLICT, false) && !isConflictDialogShow) {
-			showConflictDialog();
-		} else if (getIntent().getBooleanExtra(Constant.ACCOUNT_REMOVED, false) && !isAccountRemovedDialogShow) {
+		if (getIntent().getBooleanExtra(Constant.ACCOUNT_CONFLICT, false) && !isConflictDialogShow) {//判断是否账号冲突，并且没有冲突提示对话框没有弹出
+			showConflictDialog();//弹出冲突对话框
+		} else if (getIntent().getBooleanExtra(Constant.ACCOUNT_REMOVED, false) && !isAccountRemovedDialogShow) {//判断账号是否被移除，并且没有弹出账号被移除的对话框
 			showAccountRemovedDialog();
 		}
 
-		inviteMessgeDao = new InviteMessgeDao(this);
-		UserDao userDao = new UserDao(this);
-		conversationListFragment = new ConversationListFragment();
-		contactListFragment = new ContactListFragment();
-		SettingsFragment settingFragment = new SettingsFragment();
+		inviteMessgeDao = new InviteMessgeDao(this);//初始化留言消息的数据库对象
+		UserDao userDao = new UserDao(this);//初始化用户数据库对象
+		conversationListFragment = new ConversationListFragment();//对话列表Fragment
+		contactListFragment = new ContactListFragment();//联系人列表Fragment
+		SettingsFragment settingFragment = new SettingsFragment();//设置Fragment
 		fragments = new Fragment[] { conversationListFragment, contactListFragment, settingFragment};
 
 		getSupportFragmentManager().beginTransaction().add(R.id.fragment_container, conversationListFragment)
 				.add(R.id.fragment_container, contactListFragment).hide(contactListFragment).show(conversationListFragment)
-				.commit();
+				.commit();//显示留言消息列表Fragment
 
 		//register broadcast receiver to receive the change of group from DemoHelper
-		registerBroadcastReceiver();
+		registerBroadcastReceiver();//注册广播，接收来自DemoHelper中的小组变化
 		
-		
-		EMClient.getInstance().contactManager().setContactListener(new MyContactListener());
-		//debug purpose only
+		EMClient.getInstance().contactManager().setContactListener(new MyContactListener());//设置联系人监听
+
+		//debug purpose only 调试的目的
         registerInternalDebugReceiver();
 	}
 
@@ -152,12 +152,12 @@ public class MainActivity extends BaseActivity {
 	private void requestPermissions() {
 		PermissionsManager.getInstance().requestAllManifestPermissionsIfNecessary(this, new PermissionsResultAction() {
 			@Override
-			public void onGranted() {
+			public void onGranted() {//授予
 //				Toast.makeText(MainActivity.this, "All permissions have been granted", Toast.LENGTH_SHORT).show();
 			}
 
 			@Override
-			public void onDenied(String permission) {
+			public void onDenied(String permission) {//拒绝
 				//Toast.makeText(MainActivity.this, "Permission " + permission + " has been denied", Toast.LENGTH_SHORT).show();
 			}
 		});
@@ -167,8 +167,8 @@ public class MainActivity extends BaseActivity {
 	 * init views
 	 */
 	private void initView() {
-		unreadLabel = (TextView) findViewById(R.id.unread_msg_number);
-		unreadAddressLable = (TextView) findViewById(R.id.unread_address_number);
+		unreadLabel = (TextView) findViewById(R.id.unread_msg_number);//未读消息提示
+		unreadAddressLable = (TextView) findViewById(R.id.unread_address_number);//底部栏未读消息提示
 		mTabs = new Button[3];
 		mTabs[0] = (Button) findViewById(R.id.btn_conversation);
 		mTabs[1] = (Button) findViewById(R.id.btn_address_list);
@@ -264,20 +264,23 @@ public class MainActivity extends BaseActivity {
 	public void back(View view) {
 		super.back(view);
 	}
-	
+
+	/**
+	 * 注册本地广播
+	 */
 	private void registerBroadcastReceiver() {
         broadcastManager = LocalBroadcastManager.getInstance(this);
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Constant.ACTION_CONTACT_CHANAGED);
-        intentFilter.addAction(Constant.ACTION_GROUP_CHANAGED);
-		intentFilter.addAction(RedPacketConstant.REFRESH_GROUP_RED_PACKET_ACTION);
+        intentFilter.addAction(Constant.ACTION_CONTACT_CHANAGED);//联系人变化
+        intentFilter.addAction(Constant.ACTION_GROUP_CHANAGED);//小组变化
+		intentFilter.addAction(RedPacketConstant.REFRESH_GROUP_RED_PACKET_ACTION);//处理红包回执透传消息
         broadcastReceiver = new BroadcastReceiver() {
             
             @Override
             public void onReceive(Context context, Intent intent) {
-                updateUnreadLabel();
-                updateUnreadAddressLable();
-                if (currentTabIndex == 0) {
+                updateUnreadLabel();//更新未读标签，有数字提示
+                updateUnreadAddressLable();//更新底部标签未读提示（底部红点），无数字提示
+                if (currentTabIndex == 0) {//当前标签地址，然后进行界面更新
                     // refresh conversation list
                     if (conversationListFragment != null) {
                         conversationListFragment.refresh();
@@ -288,9 +291,10 @@ public class MainActivity extends BaseActivity {
                     }
                 }
                 String action = intent.getAction();
-                if(action.equals(Constant.ACTION_GROUP_CHANAGED)){
-                    if (EaseCommonUtils.getTopActivity(MainActivity.this).equals(GroupsActivity.class.getName())) {
-                        GroupsActivity.instance.onResume();
+				//根据具体消息进行处理
+                if(action.equals(Constant.ACTION_GROUP_CHANAGED)){//处理小组变化
+                    if (EaseCommonUtils.getTopActivity(MainActivity.this).equals(GroupsActivity.class.getName())) {//判断小组activity是否在顶部
+                        GroupsActivity.instance.onResume();//起刷新作用
                     }
                 }
 				//red packet code : 处理红包回执透传消息
@@ -302,7 +306,7 @@ public class MainActivity extends BaseActivity {
 				//end of red packet code
 			}
         };
-        broadcastManager.registerReceiver(broadcastReceiver, intentFilter);
+        broadcastManager.registerReceiver(broadcastReceiver, intentFilter);//注册广播
     }
 	
 	public class MyContactListener implements EMContactListener {
@@ -572,8 +576,10 @@ public class MainActivity extends BaseActivity {
                 });
             }
         };
+
         IntentFilter filter = new IntentFilter(getPackageName() + ".em_internal_debug");
-        registerReceiver(internalDebugReceiver, filter);
+
+		registerReceiver(internalDebugReceiver, filter);
     }
 
 	@Override 

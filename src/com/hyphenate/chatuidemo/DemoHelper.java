@@ -798,16 +798,16 @@ public class DemoHelper {
 	 *            callback
 	 */
 	public void logout(boolean unbindDeviceToken, final EMCallBack callback) {
-		endCall();
-		Log.d(TAG, "logout: " + unbindDeviceToken);
-		EMClient.getInstance().logout(unbindDeviceToken, new EMCallBack() {
+		endCall();//结束回调
+		Log.d(TAG, "logout: " + unbindDeviceToken);//解绑登录token
+		EMClient.getInstance().logout(unbindDeviceToken, new EMCallBack() {//账号登出
 
 			@Override
-			public void onSuccess() {
+			public void onSuccess() {//登出成功
 				Log.d(TAG, "logout: onSuccess");
 			    reset();
 				if (callback != null) {
-					callback.onSuccess();
+					callback.onSuccess();//登出成功回调
 				}
 
 			}
@@ -815,16 +815,16 @@ public class DemoHelper {
 			@Override
 			public void onProgress(int progress, String status) {
 				if (callback != null) {
-					callback.onProgress(progress, status);
+					callback.onProgress(progress, status);//登出进度回调
 				}
 			}
 
 			@Override
 			public void onError(int code, String error) {
-				Log.d(TAG, "logout: onSuccess");
+				Log.d(TAG, "logout: onError");
                 reset();
 				if (callback != null) {
-					callback.onError(code, error);
+					callback.onError(code, error);//登出失败回调
 				}
 			}
 		});
